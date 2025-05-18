@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
+            $table->tinyInteger('meja')->nullable();
             $table->text('catatan')->nullable();
             $table->bigInteger('total_harga')->unsigned();
-            $table->enum('status', ['pending', 'diproses', 'selesai'])->default('pending');
+            $table->enum('status', ['pending', 'diproses', 'selesai', 'dibayar'])->default('pending');
             $table->timestamps();
         });
     }

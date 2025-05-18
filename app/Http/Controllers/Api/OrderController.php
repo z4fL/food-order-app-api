@@ -44,7 +44,7 @@ class OrderController extends Controller
     {
         $request->validate([
             'catatan' => 'nullable|string',
-            'status' => 'in:pending,diproses,selesai',
+            'meja' => 'nullable|integer|min:1|max:5',
             'details' => 'required|array|min:1',
             'details.*.produk_id' => 'required|integer',
             'details.*.nama_produk' => 'required|string',
@@ -62,6 +62,7 @@ class OrderController extends Controller
 
             $order = Order::create([
                 'uuid' => Str::uuid(),
+                'meja' => $request->meja,
                 'catatan' => $request->catatan,
                 'total_harga' => $totalHarga,
                 'status' => $request->status ?? 'pending',
@@ -120,7 +121,7 @@ class OrderController extends Controller
     public function update(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'in:pending,diproses,selesai',
+            'status' => 'in:diproses,selesai,dibayar',
         ]);
 
         if ($request->filled('status')) {
