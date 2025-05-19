@@ -88,7 +88,6 @@ class OrderController extends Controller
                 'status' => false,
                 'message' => 'Gagal menyimpan data Order',
                 'error' => $e->getMessage(),
-                'data' => null
             ], 500);
         }
     }
