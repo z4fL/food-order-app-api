@@ -11,7 +11,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'catatan', 'total_harga', 'status'];
+    protected $fillable = ['uuid', 'meja', 'catatan', 'total_harga', 'status'];
 
     public function getRouteKeyName(): string
     {

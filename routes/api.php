@@ -8,8 +8,22 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Publicly accessible order store route
+Route::post('/orders/check-meja', function (Request $request) {
+    $meja = $request->input('meja');
+    if (!$meja) {
+        return response()->json(['error' => 'Meja is required'], 400);
+    }
+
+    $exists = \App\Models\Order::where('meja', $meja)
+        ->where('status', '!=', 'dibayar')
+        ->exists();
+
+    return response()->json(['exists' => $exists]);
+});
+
+// Publicly accessible order store and show routes
 Route::post('/orders', [OrderController::class, 'store']);
+Route::get('/orders/{order}', [OrderController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -18,6 +32,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Exclude 'store' from protected resource routes
-    Route::apiResource('orders', OrderController::class)->except(['store']);
+    // Exclude 'store' and 'show' from protected resource routes
+    Route::apiResource('orders', OrderController::class)->except(['store', 'show']);
 });

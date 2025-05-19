@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->tinyInteger('meja')->nullable();
+            $table->tinyInteger('meja');
             $table->text('catatan')->nullable();
             $table->bigInteger('total_harga')->unsigned();
             $table->enum('status', ['pending', 'diproses', 'selesai', 'dibayar'])->default('pending');

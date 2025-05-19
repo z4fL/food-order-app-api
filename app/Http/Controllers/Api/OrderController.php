@@ -42,15 +42,36 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'catatan' => 'nullable|string',
-            'meja' => 'nullable|integer|min:1|max:5',
+            'meja' => 'required|integer|min:1|max:5',
             'details' => 'required|array|min:1',
             'details.*.produk_id' => 'required|integer',
             'details.*.nama_produk' => 'required|string',
             'details.*.harga_produk' => 'required|integer',
             'details.*.qty' => 'required|integer|min:1',
         ]);
+
+        if (!$validated) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validasi gagal.',
+            ], 422);
+        }
+
+        // Check if meja is present in request and status is not 'dibayar' in existing orders
+        if ($request->filled('meja')) {
+            $mejaInUse = Order::where('meja', $request->meja)
+                ->where('status', '!=', 'dibayar')
+                ->exists();
+
+            if ($mejaInUse) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Meja sedang digunakan!.',
+                ], 422);
+            }
+        }
 
         DB::beginTransaction();
 
@@ -65,9 +86,8 @@ class OrderController extends Controller
                 'meja' => $request->meja,
                 'catatan' => $request->catatan,
                 'total_harga' => $totalHarga,
-                'status' => $request->status ?? 'pending',
+                'status' => 'pending',
             ]);
-
 
             foreach ($request->details as $item) {
                 $order->details()->create([
@@ -81,7 +101,7 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return new OrderResource(true, 'Order berhasil dibuat', $order->load('details'));
+            return new OrderResource(true, 'Order berhasil dibuat', ['uuid' => $order->uuid]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
