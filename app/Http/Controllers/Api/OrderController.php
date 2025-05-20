@@ -23,7 +23,10 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $orders = Order::with('details')->get();
+        $orders = Order::with('details')
+            ->where('status', '!=', 'dibayar')
+            ->orderByDesc('created_at')
+            ->get();
 
         return new OrderResource(true, "List data Orders", $orders);
     }
@@ -123,7 +126,22 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        return new OrderResource(true, 'Berhasil mendapatkan data Order', $order->load('details'));
+        // Load order details
+        $order->load('details');
+
+        // Get all produk_id from details
+        $produkIds = $order->details->pluck('produk_id')->unique();
+
+        // Fetch produk data with id and gambar
+        $produkData = \App\Models\Produk::whereIn('id', $produkIds)->pluck('gambar', 'id');
+
+        // Attach gambar to each detail
+        $order->details->transform(function ($detail) use ($produkData) {
+            $detail->gambar = $produkData[$detail->produk_id] ?? null;
+            return $detail;
+        });
+
+        return new OrderResource(true, 'Berhasil mendapatkan data Order', $order);
     }
 
     /**
