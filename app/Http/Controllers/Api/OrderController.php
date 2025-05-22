@@ -35,13 +35,13 @@ class OrderController extends Controller
         })->unique();
 
         // Fetch produk_id => kategori mapping
-        $produkKategori = \App\Models\Produk::whereIn('id', $produkIds)
+        $produkKategori = Produk::whereIn('id', $produkIds)
             ->pluck('kategori', 'id');
 
         // Attach kategori to each detail
         foreach ($orders as $order) {
             foreach ($order->details as $detail) {
-            $detail->kategori = $produkKategori[$detail->produk_id] ?? null;
+                $detail->kategori = $produkKategori[$detail->produk_id] ?? null;
             }
         }
 
@@ -121,7 +121,21 @@ class OrderController extends Controller
 
             DB::commit();
 
-            event(new OrderCreated($order));
+            $data = $order->load('details');
+
+            // Get all produk_id from details
+            $produkIds = $data->details->pluck('produk_id')->unique();
+
+            // Fetch produk_id => kategori mapping
+            $produkKategori = Produk::whereIn('id', $produkIds)
+                ->pluck('kategori', 'id');
+
+            // Attach kategori to each detail
+            foreach ($data->details as $detail) {
+                $detail->kategori = $produkKategori[$detail->produk_id] ?? null;
+            }
+
+            event(new OrderCreated($data));
 
             return new OrderResource(true, 'Order berhasil dibuat', ['uuid' => $order->uuid]);
         } catch (\Exception $e) {
@@ -186,7 +200,7 @@ class OrderController extends Controller
 
         $order->save();
 
-        event(new OrderUpdated($order));
+        event(new OrderUpdated($order->load('details')));
 
         return new OrderResource(true, 'Berhasil merubah data Order', $order->load('details'));
     }
