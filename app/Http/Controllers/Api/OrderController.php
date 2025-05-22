@@ -28,6 +28,22 @@ class OrderController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        // Get all produk_id from all order details
+        $produkIds = $orders->flatMap(function ($order) {
+            return $order->details->pluck('produk_id');
+        })->unique();
+
+        // Fetch produk_id => kategori mapping
+        $produkKategori = \App\Models\Produk::whereIn('id', $produkIds)
+            ->pluck('kategori', 'id');
+
+        // Attach kategori to each detail
+        foreach ($orders as $order) {
+            foreach ($order->details as $detail) {
+            $detail->kategori = $produkKategori[$detail->produk_id] ?? null;
+            }
+        }
+
         return new OrderResource(true, "List data Orders", $orders);
     }
 
