@@ -24,16 +24,16 @@ class Order extends Model
     }
 
     // Broadcasting events when an order is created or updated
-    protected static function boot()
-    {
-        parent::boot();
+    // protected static function boot()
+    // {
+    //     parent::boot();
 
-        static::created(function ($order) {
-            event(new OrderCreated($order));
-        });
+    //     static::created(function ($order) {
+    //         event(new OrderCreated($order));
+    //     });
 
-        static::updated(function ($order) {
-            event(new OrderUpdated($order));
-        });
-    }
+    //     static::updated(function ($order) {
+    //         event(new OrderUpdated($order));
+    //     });
+    // }
 }
