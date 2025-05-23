@@ -165,12 +165,14 @@ class OrderController extends Controller
         // Get all produk_id from details
         $produkIds = $order->details->pluck('produk_id')->unique();
 
-        // Fetch produk data with id and gambar
-        $produkData = Produk::whereIn('id', $produkIds)->pluck('gambar', 'id');
+        // Fetch produk data with id, gambar, and kategori
+        $produkData = Produk::whereIn('id', $produkIds)->get(['id', 'gambar', 'kategori'])->keyBy('id');
 
-        // Attach gambar to each detail
+        // Attach gambar and kategori to each detail
         $order->details->transform(function ($detail) use ($produkData) {
-            $detail->gambar = $produkData[$detail->produk_id] ?? null;
+            $produk = $produkData[$detail->produk_id] ?? null;
+            $detail->gambar = $produk->gambar ?? null;
+            $detail->kategori = $produk->kategori ?? null;
             return $detail;
         });
 
@@ -200,7 +202,7 @@ class OrderController extends Controller
 
         $order->save();
 
-        event(new OrderUpdated($order->load('details')));
+        // event(new OrderUpdated($order->load('details')));
 
         return new OrderResource(true, 'Berhasil merubah data Order', $order->load('details'));
     }
