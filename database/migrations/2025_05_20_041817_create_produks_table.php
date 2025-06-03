@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('nama');
             $table->bigInteger('harga');
             $table->enum('kategori', ['makanan', 'minuman']);
-            $table->string('gambar');
+            $table->text('gambar');
+            $table->string('public_id');
             $table->timestamps();
         });
     }
