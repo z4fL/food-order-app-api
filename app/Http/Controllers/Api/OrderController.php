@@ -202,7 +202,7 @@ class OrderController extends Controller
 
         $order->save();
 
-        // event(new OrderUpdated($order->load('details')));
+        event(new OrderUpdated($order->load('details')));
 
         return new OrderResource(true, 'Berhasil merubah data Order', $order->load('details'));
     }
