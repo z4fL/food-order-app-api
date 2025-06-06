@@ -41,7 +41,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
@@ -77,4 +77,27 @@ return [
         public_path('storage') => storage_path('app/public'),
     ],
 
+
+    /**
+     * Cloudinary filesystem disk configuration.
+     *
+     * This configuration array defines the settings required to connect and interact with the Cloudinary storage service.
+     *
+     * - driver: The filesystem driver to use ('cloudinary').
+     * - key: Your Cloudinary API key, loaded from the CLOUDINARY_KEY environment variable.
+     * - secret: Your Cloudinary API secret, loaded from the CLOUDINARY_SECRET environment variable.
+     * - cloud: Your Cloudinary cloud name, loaded from the CLOUDINARY_CLOUD_NAME environment variable.
+     * - url: The Cloudinary base URL, loaded from the CLOUDINARY_URL environment variable.
+     * - secure: Boolean flag to determine if secure URLs should be used, defaults to true. Loaded from CLOUDINARY_SECURE.
+     * - prefix: Optional path prefix for all Cloudinary assets, loaded from CLOUDINARY_PREFIX.
+     */
+    'cloudinary' => [
+        'driver' => 'cloudinary',
+        'key' => env('CLOUDINARY_KEY'),
+        'secret' => env('CLOUDINARY_SECRET'),
+        'cloud' => env('CLOUDINARY_CLOUD_NAME'),
+        'url' => env('CLOUDINARY_URL'),
+        'secure' => (bool) env('CLOUDINARY_SECURE', true),
+        'prefix' => env('CLOUDINARY_PREFIX'),
+    ],
 ];

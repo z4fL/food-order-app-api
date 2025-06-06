@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Produk;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Request;
 
 class ProdukController extends Controller
@@ -35,16 +36,14 @@ class ProdukController extends Controller
             ], 422);
         }
 
-        // Store the uploaded image with a hashed name in 'public/gambar' directory
-        $file = $request->file('gambar');
-        $hashedName = $file->hashName('gambar');
-        $file->storeAs('images', basename($hashedName), 'public');
+        $upload = Cloudinary::upload($request->file('gambar')->getRealPath());
 
         $produk = Produk::create([
             'nama' => $validated['nama'],
             'harga' => $validated['harga'],
             'kategori' => $validated['kategori'],
-            'gambar' => $hashedName, // Save the hashed path to the database
+            'gambar'    => $upload->getSecurePath(),   // URL image
+            'public_id' => $upload->getPublicId(),     // Buat hapus/edit
         ]);
 
         return response()->json($produk, 201);
@@ -87,10 +86,14 @@ class ProdukController extends Controller
         }
 
         if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');
-            $hashedName = $file->hashName('gambar');
-            $file->storeAs('images', basename($hashedName), 'public');
-            $validated['gambar'] = $hashedName;
+            if (!empty($produk->public_id)) {
+                Cloudinary::destroy($produk->public_id);
+            }
+
+            $upload = Cloudinary::upload($request->file('gambar')->getRealPath());
+
+            $validated['gambar'] = $upload->getSecurePath();
+            $validated['public_id'] = $upload->getPublicId();
         }
 
         $produk->update($validated);
@@ -108,6 +111,7 @@ class ProdukController extends Controller
             return response()->json(['message' => 'Produk not found'], 404);
         }
 
+        Cloudinary::destroy($produk->public_id);
         $produk->delete();
 
         return response()->json(['message' => 'Produk deleted']);

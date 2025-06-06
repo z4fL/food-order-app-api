@@ -14,5 +14,6 @@ class Produk extends Model
         'harga',
         'kategori',
         'gambar',
+        'public_id',
     ];
 }

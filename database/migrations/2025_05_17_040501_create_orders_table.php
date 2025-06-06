@@ -17,7 +17,7 @@ return new class extends Migration
             $table->tinyInteger('meja');
             $table->text('catatan')->nullable();
             $table->bigInteger('total_harga')->unsigned();
-            $table->enum('status', ['pending', 'diproses', 'selesai', 'dibayar'])->default('pending');
+            $table->enum('status', ['pending', 'diproses', 'diantar', 'dibayar'])->default('pending');
             $table->timestamps();
         });
     }
