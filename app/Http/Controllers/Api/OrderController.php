@@ -183,7 +183,7 @@ class OrderController extends Controller
      * Update the specified order's status.
      *
      * Validates the incoming request to ensure the 'status' field, if present, is one of:
-     * 'pending', 'diproses', or 'diantar'. If the 'status' field is provided and valid,
+     * 'pending', 'diproses', or 'dibayar'. If the 'status' field is provided and valid,
      * updates the order's status accordingly and saves the changes.
      *
      * @param  \Illuminate\Http\Request  $request  The incoming HTTP request containing update data.

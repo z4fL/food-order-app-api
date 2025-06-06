@@ -86,7 +86,9 @@ class ProdukController extends Controller
         }
 
         if ($request->hasFile('gambar')) {
-            Cloudinary::destroy($produk->public_id);
+            if (!empty($produk->public_id)) {
+                Cloudinary::destroy($produk->public_id);
+            }
 
             $upload = Cloudinary::upload($request->file('gambar')->getRealPath());
 
