@@ -11,6 +11,10 @@ use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Xendit\Configuration;
+use Xendit\Invoice\CreateInvoiceRequest;
+use Xendit\Invoice\InvoiceApi;
 
 class OrderController extends Controller
 {
@@ -25,7 +29,7 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::with('details')
-            ->where('status', '!=', 'dibayar')
+            ->where('status', '!=', 'diantar')
             ->orderByDesc('created_at')
             ->get();
 
@@ -82,7 +86,7 @@ class OrderController extends Controller
         // Check if meja is present in request and status is not 'dibayar' in existing orders
         if ($request->filled('meja')) {
             $mejaInUse = Order::where('meja', $request->meja)
-                ->where('status', '!=', 'dibayar')
+                ->where('status', '!=', 'diantar')
                 ->exists();
 
             if ($mejaInUse) {
@@ -106,7 +110,7 @@ class OrderController extends Controller
                 'meja' => $request->meja,
                 'catatan' => $request->catatan,
                 'total_harga' => $totalHarga,
-                'status' => 'pending',
+                'status' => 'belum dibayar',
             ]);
 
             foreach ($request->details as $item) {
@@ -193,7 +197,7 @@ class OrderController extends Controller
     public function update(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'in:diproses,diantar,dibayar',
+            'status' => 'in:diproses,diantar',
         ]);
 
         if ($request->filled('status')) {
@@ -229,5 +233,57 @@ class OrderController extends Controller
         $order->delete();
 
         return new OrderResource(true, 'Berhasil menghapus data Order', null);
+    }
+
+    public function pay(Order $order)
+    {
+
+        Configuration::setXenditKey(config('services.xendit.secret_key'));
+        $apiInstance = new InvoiceApi();
+
+        if ($order->checkout_link) {
+            return redirect($order->checkout_link); // udah pernah dibuat
+        }
+        $externalId = 'INV-' . uniqid();
+
+        $create_invoice_request = new CreateInvoiceRequest([
+            'external_id' => $externalId,
+            'description' => 'Pembayaran untuk Meja ' . $order->meja,
+            'amount' =>  $order->total_harga,
+            'currency' => 'IDR',
+            'invoice_duration' => 3600,
+            'success_redirect_url' => "",
+            'failure_redirect_url' => ""
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $invoice = $apiInstance->createInvoice($create_invoice_request);
+
+            $order->update([
+                'external_id' => $externalId,
+                'checkout_link' => $invoice['invoice_url'],
+                'status_xendit' => $invoice['status'],
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Invoice berhasil dibuat',
+                'invoice' => $invoice
+            ]);
+        } catch (\Xendit\XenditSdkException $e) {
+            DB::rollBack();
+            Log::error('Xendit Error: ' . $e->getMessage());
+            Log::error('Full Error: ' . json_encode($e->getFullError()));
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal membuat invoice',
+                'error' => $e->getMessage(),
+                'details' => $e->getFullError(),
+            ], 500);
+        }
     }
 }
