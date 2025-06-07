@@ -3,5 +3,6 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $laravelVersion = app()->version();
+    return response()->json(['laravelVersion' => $laravelVersion]);
 });

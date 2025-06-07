@@ -17,7 +17,12 @@ return new class extends Migration
             $table->tinyInteger('meja');
             $table->text('catatan')->nullable();
             $table->bigInteger('total_harga')->unsigned();
-            $table->enum('status', ['pending', 'diproses', 'diantar', 'dibayar'])->default('pending');
+            $table->enum('status', ['belum dibayar', 'diproses', 'diantar'])->default('belum dibayar');
+
+            // Xendit fields
+            $table->string('external_id')->nullable(); // buat Xendit
+            $table->string('checkout_link')->nullable(); // link invoice
+            $table->string('status_xendit')->nullable();
             $table->timestamps();
         });
     }

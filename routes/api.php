@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProdukController;
+use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,8 @@ Route::post('/orders/check-meja', function (Request $request) {
 // Publicly accessible order store and show routes
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{order}', [OrderController::class, 'show']);
+Route::get('/pay-order/{order}', [OrderController::class, 'pay']);
+Route::post('/webhook/xendit', [WebhookController::class, 'handle']);
 Route::get('/produks', [ProdukController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
