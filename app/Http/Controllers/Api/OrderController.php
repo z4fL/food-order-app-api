@@ -237,13 +237,13 @@ class OrderController extends Controller
 
     public function pay(Order $order)
     {
-
         Configuration::setXenditKey(config('services.xendit.secret_key'));
         $apiInstance = new InvoiceApi();
 
         if ($order->checkout_link) {
             return redirect($order->checkout_link); // udah pernah dibuat
         }
+
         $externalId = 'INV-' . uniqid();
 
         $create_invoice_request = new CreateInvoiceRequest([
@@ -251,12 +251,13 @@ class OrderController extends Controller
             'description' => 'Pembayaran untuk Meja ' . $order->meja,
             'amount' =>  $order->total_harga,
             'currency' => 'IDR',
-            'invoice_duration' => 3600,
-            'success_redirect_url' => "",
-            'failure_redirect_url' => ""
+            'invoice_duration' => 1800 ,
+            'success_redirect_url' => "https://food-order-z4fl.netlify.app/detail-order/" . $order->uuid . "?status=pembayaran_sukses",
+            'failure_redirect_url' => "https://food-order-z4fl.netlify.app/detail-order/" . $order->uuid . "?status=pembayaran_gagal"
         ]);
 
         DB::beginTransaction();
+
         try {
             $invoice = $apiInstance->createInvoice($create_invoice_request);
 
@@ -271,7 +272,7 @@ class OrderController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Invoice berhasil dibuat',
-                'invoice' => $invoice
+                'checkout_link' => $invoice['invoice_url'],
             ]);
         } catch (\Xendit\XenditSdkException $e) {
             DB::rollBack();
