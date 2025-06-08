@@ -29,7 +29,7 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::with('details')
-            ->where('status', '!=', 'diantar')
+            ->where('status', 'diproses')
             ->orderByDesc('created_at')
             ->get();
 
@@ -241,7 +241,11 @@ class OrderController extends Controller
         $apiInstance = new InvoiceApi();
 
         if ($order->checkout_link) {
-            return redirect($order->checkout_link); // udah pernah dibuat
+	    return response()->json([
+                'status' => true,
+                'message' => 'Invoice sudah dibuat',
+                'checkout_link' => $order->checkout_link,
+            ]);
         }
 
         $externalId = 'INV-' . uniqid();
@@ -252,8 +256,8 @@ class OrderController extends Controller
             'amount' =>  $order->total_harga,
             'currency' => 'IDR',
             'invoice_duration' => 1800 ,
-            'success_redirect_url' => "https://food-order-z4fl.netlify.app/detail-order/" . $order->uuid . "?status=pembayaran_sukses",
-            'failure_redirect_url' => "https://food-order-z4fl.netlify.app/detail-order/" . $order->uuid . "?status=pembayaran_gagal"
+            'success_redirect_url' => "https://food-order-duade.netlify.app/detail-order/" . $order->uuid . "?status=pembayaran_sukses",
+            'failure_redirect_url' => "https://food-order-duade.netlify.app/detail-order/" . $order->uuid . "?status=pembayaran_gagal"
         ]);
 
         DB::beginTransaction();

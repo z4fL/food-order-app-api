@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\OrderUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -30,6 +31,8 @@ class WebhookController extends Controller
         }
 
         $order->save();
+
+        event(new OrderUpdated($order->load('details')));
 
         return response()->json(['message' => 'Webhook processed']);
     }

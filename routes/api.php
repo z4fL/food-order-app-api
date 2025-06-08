@@ -26,7 +26,8 @@ Route::post('/orders/check-meja', function (Request $request) {
 // Publicly accessible order store and show routes
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{order}', [OrderController::class, 'show']);
-Route::get('/pay-order/{order}', [OrderController::class, 'pay']);
+Route::post('/pay-order/{order}', [OrderController::class, 'pay']);
+
 Route::post('/webhook/xendit', [WebhookController::class, 'handle']);
 Route::get('/produks', [ProdukController::class, 'index']);
 
