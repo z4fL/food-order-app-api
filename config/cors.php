@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['https://food-order-duade.netlify.app'],
 
     'allowed_origins_patterns' => [],
 
