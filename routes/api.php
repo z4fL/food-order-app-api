@@ -17,7 +17,8 @@ Route::post('/orders/check-meja', function (Request $request) {
     }
 
     $exists = \App\Models\Order::where('meja', $meja)
-        ->whereIn('status', ['diproses', 'diantar'])
+        // ->whereIn('status', ['diproses', 'diantar'])
+        ->where('status', 'diproses')
         ->exists();
 
     return response()->json(['exists' => $exists]);

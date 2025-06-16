@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\OrderCreated;
+use App\Events\OrderPaid;
 use App\Events\OrderUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
@@ -249,7 +250,7 @@ class OrderController extends Controller
 
         $order->save();
 
-        event(new OrderUpdated($order->load('details')));
+        event(new OrderPaid($order->load('details')));
 
         return new OrderResource(true, 'Berhasil merubah data Order', $order->load('details'));
     }
