@@ -68,12 +68,19 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->firstOrFail();
 
+        if (!in_array($user->role, ['admin', 'cashier'])) {
+            return response()->json([
+                'message' => 'Unauthorized role'
+            ], 403);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login success',
             'access_token' => $token,
-            'token_type' => 'Bearer'
+            'token_type' => 'Bearer',
+            'role' => $user->role // Include role in response
         ]);
     }
 
@@ -85,7 +92,8 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse JSON response indicating successful logout.
      */
-    public function logout() {
+    public function logout()
+    {
         Auth::user()->tokens()->delete();
 
         return response()->json([

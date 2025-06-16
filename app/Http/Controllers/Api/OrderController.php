@@ -52,6 +52,32 @@ class OrderController extends Controller
         return new OrderResource(true, "List data Orders", $orders);
     }
 
+    public function indexCashier()
+    {
+        $orders = Order::with('details')
+            ->where('status', 'belum dibayar')
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Get all produk_id from all order details
+        $produkIds = $orders->flatMap(function ($order) {
+            return $order->details->pluck('produk_id');
+        })->unique();
+
+        // Fetch produk_id => kategori mapping
+        $produkKategori = Produk::whereIn('id', $produkIds)
+            ->pluck('kategori', 'id');
+
+        // Attach kategori to each detail
+        foreach ($orders as $order) {
+            foreach ($order->details as $detail) {
+                $detail->kategori = $produkKategori[$detail->produk_id] ?? null;
+            }
+        }
+
+        return new OrderResource(true, "List data Orders (Cashier)", $orders);
+    }
+
     /**
      * Store a newly created order in storage.
      *
@@ -211,6 +237,23 @@ class OrderController extends Controller
         return new OrderResource(true, 'Berhasil merubah data Order', $order->load('details'));
     }
 
+    public function updateCashier(Request $request, Order $order)
+    {
+        $request->validate([
+            'status' => 'in:diproses,diantar',
+        ]);
+
+        if ($request->filled('status')) {
+            $order->status = $request->status;
+        }
+
+        $order->save();
+
+        event(new OrderUpdated($order->load('details')));
+
+        return new OrderResource(true, 'Berhasil merubah data Order', $order->load('details'));
+    }
+
     /**
      * Remove the specified order from storage.
      *
@@ -241,7 +284,7 @@ class OrderController extends Controller
         $apiInstance = new InvoiceApi();
 
         if ($order->checkout_link) {
-	    return response()->json([
+            return response()->json([
                 'status' => true,
                 'message' => 'Invoice sudah dibuat',
                 'checkout_link' => $order->checkout_link,
@@ -255,7 +298,7 @@ class OrderController extends Controller
             'description' => 'Pembayaran untuk Meja ' . $order->meja,
             'amount' =>  $order->total_harga,
             'currency' => 'IDR',
-            'invoice_duration' => 1800 ,
+            'invoice_duration' => 1800,
             'success_redirect_url' => "https://food-order-duade.netlify.app/detail-order/" . $order->uuid . "?status=pembayaran_sukses",
             'failure_redirect_url' => "https://food-order-duade.netlify.app/detail-order/" . $order->uuid . "?status=pembayaran_gagal"
         ]);

@@ -23,9 +23,8 @@ Route::post('/orders/check-meja', function (Request $request) {
     return response()->json(['exists' => $exists]);
 });
 
-// Publicly accessible order store and show routes
 Route::post('/orders', [OrderController::class, 'store']);
-Route::get('/orders/{order}', [OrderController::class, 'show']);
+
 Route::post('/pay-order/{order}', [OrderController::class, 'pay']);
 
 Route::post('/webhook/xendit', [WebhookController::class, 'handle']);
@@ -42,4 +41,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Exclude 'store' and 'show' from protected resource routes
     Route::apiResource('orders', OrderController::class)->except(['store', 'show']);
+
+    Route::get('/orders/cashier', [OrderController::class, 'indexCashier']);
+    Route::patch('/orders/cashier/{order}', [OrderController::class, 'updateCashier']);
 });
+
+Route::get('/orders/{order}', [OrderController::class, 'show']);
